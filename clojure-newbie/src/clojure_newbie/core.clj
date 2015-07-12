@@ -60,6 +60,19 @@
              (conj ordinals (#(clojure.pprint/cl-format nil "~:R" %) (inc current))))
       ordinals)))
 
+;; Don't know which one is better. They have pretilly the same algorithm but I believe using loop and recur is more idiomatic.
+(defn other-ordinals-seq
+  "Expect a number and return the sequence of ordinals from one below or equal to the parameter."
+  ([cap]
+   (other-ordinals-seq [] cap))
+  ([seq cap]
+    (if (= cap 1)
+      seq
+      (other-ordinals-seq
+       (into seq (#(clojure.pprint/cl-format nil "~:R" %)
+                  (cap))
+             (- cap 1))))))
+
 (defn matching-parts
   ([part]
    (matching-parts part 5))
