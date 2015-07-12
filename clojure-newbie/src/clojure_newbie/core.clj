@@ -85,11 +85,19 @@
            #{}
            (map matching-ordinal (ordinals-seq occurence)))))
 
+(defn symmetrize-body-parts
+  "Expects a seq of maps that have a :name and :size and return a full body."
+  [asym-body-parts]
+  (reduce (fn [final-body-parts part]
+            (into final-body-parts (matching-parts part 5)))
+          []
+          asym-body-parts))
 
-(defn radial-symmetry-body-parts
+;; Chapter III exercice 6
+(defn symmetrize-body-parts
   "Expects a seq of maps that have a :name and :size and return a full body."
   ([asym-body-parts]
-   (radial-symmetry-body-parts asym-body-parts 5))
+   (symmetrize-body-parts asym-body-parts 5))
   ([asym-body-parts occurence]
    (reduce (fn [final-body-parts part]
              (into final-body-parts (matching-parts part occurence)))
