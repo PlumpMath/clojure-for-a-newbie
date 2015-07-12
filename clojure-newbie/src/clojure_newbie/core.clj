@@ -23,6 +23,7 @@
 ((fn [func array] (set (map func array))) inc [1 2])
 
 ;; Chapter III exercice 5
+;; First we define the test data structure.
 (def asym-hobbit-body-parts [{:name "head" :size 3}
                              {:name "left-eye" :size 1}
                              {:name "left-ear" :size 1}
@@ -43,25 +44,41 @@
                              {:name "left-achilles" :size 1}
                              {:name "left-foot" :size 2}])
 
-;; dummy way ><
-(defn matching-part
-  [part]
-  (set
-   [{:name (clojure.string/replace (:name part) #"^left-" "first-")
-     :size (:size part)}
-    {:name (clojure.string/replace (:name part) #"^left-" "second-")
-     :size (:size part)}
-    {:name (clojure.string/replace (:name part) #"^left-" "third-")
-     :size (:size part)}
-    {:name (clojure.string/replace (:name part) #"^left-" "fourth-")
-     :size (:size part)}
-    {:name (clojure.string/replace (:name part) #"^left-" "fifth-")
-     :size (:size part)}]))
+;; Then we define some helpers. As for philosophy KISS, their meaning is kinda atomic and somewhat straightforward.
+(defn matching-ordinal
+  "Replace a name containg \"left-\" but it's ith counterpart."
+  [ith]
+  #(clojure.string/replace % #"^left-" (str ith "-")))
+
+(defn ordinals-seq
+  "Expect a number and return the sequence of ordinals from one below or equal to the parameter."
+  [cap]
+  (loop [current 0
+         ordinals []]
+    (if (< current cap)
+      (recur (inc current)
+             (conj ordinals (#(clojure.pprint/cl-format nil "~:R" %) (inc current))))
+      ordinals)))
+
+(defn matching-parts
+  ([part]
+   (matching-parts part 5))
+  ([part occurence]
+   (reduce (fn [final-set ; new set of parts related to the old part
+               function] ; replace an ordinal
+             (conj final-set
+                   {:name (function (:name part))
+                    :size (:size part)}))
+           #{}
+           (map matching-ordinal (ordinals-seq occurence)))))
+
 
 (defn radial-symmetry-body-parts
-  "Expects a seq of maps that have a :name and :size"
-  [asym-body-parts]
-  (reduce (fn [final-body-parts part]
-            (into final-body-parts (set [part (matching-part part)])))
-          []
-          asym-body-parts))
+  "Expects a seq of maps that have a :name and :size and return a full body."
+  ([asym-body-parts]
+   (radial-symmetry-body-parts asym-body-parts 5))
+  ([asym-body-parts occurence]
+   (reduce (fn [final-body-parts part]
+             (into final-body-parts (matching-parts part occurence)))
+           []
+           asym-body-parts)))
