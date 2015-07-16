@@ -1,28 +1,14 @@
 (ns clojure-newbie.core
   (:gen-class)
   (:refer-clojure))
+(def filename "suspects.csv")
 
 (defn -main
   "I din't do a whole lot ... yet."
   [& args]
   (println "I'm a little teapot."))
 
-;; Chapter III exercice 1
-(str (vector 1 2 3)
-     (list 1 2 3
-           (hash-map :a 1 :b 2)
-           (hash-set 1 1 2)))
-
-;; Chapter III exercice 2
-(map #(+ 100 %) [0 50])
-
-;; Chapter III exercice 3
-(map ((fn [shift] #(- % shift)) 6) [0 3 6])
-
-;; Chapter III exercice 4
-((fn [func array] (set (map func array))) inc [1 2])
-
-;; Chapter III exercice 5
+;; Chapter III
 ;; First we define the test data structure.
 (def asym-hobbit-body-parts [{:name "head" :size 3}
                              {:name "left-eye" :size 1}
@@ -60,19 +46,22 @@
              (conj ordinals (#(clojure.pprint/cl-format nil "~:R" %) (inc current))))
       ordinals)))
 
-;; Don't know which one is better. They have pretilly the same algorithm but I believe using loop and recur is more idiomatic.
-(defn other-ordinals-seq
-  "Expect a number and return the sequence of ordinals from one below or equal to the parameter."
-  ([cap]
-   (other-ordinals-seq [] cap))
-  ([seq cap]
-    (if (= cap 1)
-      seq
-      (other-ordinals-seq
-       (into seq (#(clojure.pprint/cl-format nil "~:R" %)
-                  (cap))
-             (- cap 1))))))
+;; Chapter III exercice 1
+(str (vector 1 2 3)
+     (list 1 2 3
+           (hash-map :a 1 :b 2)
+           (hash-set 1 1 2)))
 
+;; Chapter III exercice 2
+(map #(+ 100 %) [0 50])
+
+;; Chapter III exercice 3
+(map ((fn [shift] #(- % shift)) 6) [0 3 6])
+
+;; Chapter III exercice 4
+((fn [func array] (set (map func array))) inc [1 2])
+
+;; Chapter III exercice 5
 (defn matching-parts
   ([part]
    (matching-parts part 5))
@@ -103,3 +92,110 @@
              (into final-body-parts (matching-parts part occurence)))
            []
            asym-body-parts)))
+
+;; Chapter IV
+(def vamp-keys [:name :glitter-index])
+
+(defn str->int
+  [str]
+  (Integer. str))
+
+(def conversions {:name identity
+                  :glitter-index str->int})
+(defn convert
+  [vamp-key value]
+  ((get conversions vamp-key) value))
+
+(defn parse
+  "Convert a CSV into rows of columns"
+  [string]
+  (map #(clojure.string/split % #",")
+       (clojure.string/split string #"\n")))
+
+(defn mapify
+  "Return a seq of maps like {:name \"Edward Cullen\" :glitter-index 10}"
+  [rows]
+  (map (fn [unmapped-row]
+         (reduce (fn [row-map [vamp-key value]]
+                   (assoc row-map vamp-key (convert vamp-key value)))
+                 {}
+                 (map vector vamp-keys unmapped-row)))
+       rows))
+
+(defn glitter-filter
+  [minimum-glitter records]
+  (filter #(>= (:glitter-index %) minimum-glitter) records))
+
+;; How to use it
+(glitter-filter 3 (mapify (parse (slurp filename))))
+
+;; Chapter IV exercice 1
+(defn glitter-filter
+  [minimum-glitter records]
+  (map :name (filter #(>= (:glitter-index %) minimum-glitter) records)))
+
+;; Chapter IV exercice 2
+(defn mapper
+  [unmapped-row]
+  (reduce (fn [row-map [vamp-key value]]
+            (assoc row-map vamp-key (convert vamp-key value)))
+          {}
+          (map vector vamp-keys unmapped-row))
+  )
+
+(defn mapify
+  "Return a seq of maps like {:name \"Edward Cullen\" :glitter-index 10}"
+  [rows]
+  (map mapper rows))
+
+
+(defn append
+  "Append a new suspect to the list"
+  [suspect]
+  (spit filename
+        (#(str (:name %) "," (:glitter-index %)) suspect)
+        :append true))
+
+;; chapter IV exercice 3
+(defn validate
+  [functions record]
+  (reduce #(and %1 (%2 record)) true functions))
+
+;; How to use it
+(def validation-functions
+  [#(contains? % :name )
+   #(contains? % :glitter-index)])
+
+(defn append
+  "Append a new suspect to the list"
+  [suspect]
+  (if (validate validation-functions suspect)
+    (do (spit filename
+              (#(str (:name %) "," (:glitter-index %)) suspect)
+              :append true)
+        "Record appended")
+    "Parameter suspect form is invalid"))
+
+;; Chapter IV exercice 4
+(defn serialize
+  [suspect]
+  (#(str (:name %) "," (:glitter-index %)) suspect))
+
+(defn append
+  "Append a new suspect to the list"
+  [suspect]
+  (if (validate validation-functions suspect)
+    (do (spit filename
+              (serialize suspect)
+              :append true)
+        "Record appended")
+    "Parameter suspect form is invalid"))
+
+(defn back-to-csv
+  [map-of-maps]
+  (reduce #(str %1 (serialize %2) "\n") "" map-of-maps))
+
+;; How to use it
+(def map-of-maps
+  [{:name "a" :glitter-index 3}
+   {:name "b" :glitter-index 4}])
