@@ -10,6 +10,7 @@ So my learning path hasn't started from imperative programming, excepted TI-BASI
  * I've known actor-based paradigm a bit thanks to akka but it's somewhat limited so I'd prefer to discover this paradigm more in-depth with quasar and pulsar.
  * Clojure and quasar will help me know more and transactional software memory and concurrent programming
  * Then I'll dive into logic programming.
+ * Thanks with Clojure, I plan to get interested in matrix programming
 
 At the end of that whole path, I will say myself an engineer: by know I'm just a late student or a brogrammer.
 
