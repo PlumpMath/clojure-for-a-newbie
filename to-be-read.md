@@ -17,3 +17,5 @@ At the end of that whole path, I will say myself an engineer: by know I'm just a
 constraint programming → trammel
 relational programming, constraint logic programming, and nominal logic programming → core.logic
 logic for robots → mini-kanren
+
+Show your Clojure efficiency: implement it in Clojure https://github.com/evolvingstuff/RecurrentJava
