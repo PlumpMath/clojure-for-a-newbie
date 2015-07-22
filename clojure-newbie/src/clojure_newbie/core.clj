@@ -221,46 +221,20 @@
                 :dexterity 5}})
 
 ;; Chapter V exercice 3
-(defn my-assoc-in
-  ;; Is it idiomatic?
-  [m [k & ks] v]
-  (loop [m m
-         k k
-         remaining ks]
-    (if (= 1 (count ks))
-      (assoc m ks v)
-      (let [[k1 & ks1] ks]
-        (recur (assoc m k nil)
-               k1
-               ks1)))))
-
-(defn my-assoc-in2
-  ;; Is it idiomatic to have implicit recurrence?
-  [m [k & ks] v]
-  (assoc (if (= 1 (count ks))
-           m
-           (my-assoc-in2 m ks v))
-    ks v))
-
-(defn mai3
-  "Implement built-in assoc-in"
-  [m [k & ks] v]
-  (str m)
-  (let [v1 (if (contains? m k)
-             (mai3 (get m k) ks v)
-             v)]
-    (assoc m k v1)))
-
-(defn mai4
-  ""
-  [map keys value]
-  (loop [[key & keys] (reverse keys)
+(defn my-assoc-in-reversed
+  "Implements something what could look like the built-in assoc-in"
+  ;; (my-assoc-in-reversed {:a 1 :b 2} [:a :c :d :e] 3)
+  ;;=> {:e {:d {:c {:a 3}}}, :b 2, :a 1}
+  ;; but I would like a 'revert' output for the same input:
+  ;; (my-assoc-in-reversed {:a 1 :b 2} (reverse [:a :c :d :e]) 3)
+  ;;=> {:b 2, :a {:c {:d {:e 3}}}}
+  ;; it's meant to insert a value in a nested map. It (:b :a nested-map) is set to 3 and we want to insert 4 at the point (:c :b :a nested-map), 3 will be erased.
+  [map [k & keys] value]
+  (loop [[key & keys] keys
          final map
-         initial (assoc {} key value)]
+         initial (assoc {} k value)]
     (if (not (empty? keys))
-      (let [keys (reverse keys)]
-        (println "key:" key)
-        (println "rem:" keys)
+      (let [keys keys]
         (recur keys
                final
                (assoc {} key initial)))
